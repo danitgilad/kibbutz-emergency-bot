@@ -11,6 +11,8 @@ Step-by-step instructions to get the bot running. No advanced technical knowledg
 - A phone with WhatsApp
 - A credit card (for Twilio account - costs ~$1-5/month)
 
+> **Want to try without Twilio first?** Set `DEMO_MODE=true` in your `.env` file. Messages will be logged to the console instead of sent via WhatsApp.
+
 ---
 
 ## Step 1: Create a Google Sheet
@@ -96,14 +98,16 @@ The bot needs to run 24/7 on the internet. Railway is the simplest way to do tha
 | `TWILIO_AUTH_TOKEN` | Your Auth Token from Twilio |
 | `TWILIO_WHATSAPP_NUMBER` | `whatsapp:+14155238886` (the Sandbox number) |
 | `GOOGLE_SHEET_ID` | The Sheet ID from Step 1 |
-| `GOOGLE_CREDENTIALS_PATH` | `./credentials.json` |
+| `GOOGLE_CREDENTIALS_JSON` | The entire contents of `credentials.json` as a string (see below) |
 | `COORDINATOR_PHONE` | `whatsapp:+972XXXXXXXXX` (coordinator's number with country code) |
 | `PORT` | `3000` |
 | `BASE_URL` | The URL you got from Railway |
 | `TIMEZONE` | `Asia/Jerusalem` |
 | `ADMIN_API_KEY` | The key from Step 4 |
 
-5. Upload the `credentials.json` file to the project
+**For Google credentials**, you have two options:
+- **Option A (recommended for cloud):** Set `GOOGLE_CREDENTIALS_JSON` to the entire contents of `credentials.json` as a string. Open the file in a text editor, copy everything, and paste it as the value.
+- **Option B (local/file):** Upload `credentials.json` to the project and set `GOOGLE_CREDENTIALS_PATH=./credentials.json` instead.
 
 ---
 
@@ -154,10 +158,10 @@ https://YOUR_RAILWAY_URL/roster?key=YOUR_ADMIN_API_KEY
 ### For Personnel:
 | Message | Action |
 |---------|--------|
-| `1` / `leaving` / `יוצא` | Report leaving the kibbutz |
-| `2` / `back` / `חזרתי` | Report returning to the kibbutz |
-| `3` / `roster` / `תורנות` | View current on-call roster |
-| `hi` / `menu` / `תפריט` | Show main menu |
+| `1` / `leaving` / `יוצא` / `יוצאת` | Report leaving the kibbutz |
+| `2` / `back` / `חזרתי` / `חזרה` | Report returning to the kibbutz |
+| `3` / `roster` / `תורנות` / `רשימה` | View current on-call roster |
+| `hi` / `menu` / `תפריט` / `שלום` | Show main menu |
 
 ### For Coordinator:
 | Message | Action |
@@ -196,10 +200,11 @@ For production (a real WhatsApp Business number), Twilio charges a monthly fee f
 - Check that the webhook URL is correct in Twilio Console
 - Make sure the sender's phone number is in the Personnel list
 - Check Railway logs for errors
+- Try `DEMO_MODE=true` to test locally without Twilio
 
 **Google Sheets errors:**
 - Make sure the service account email has Editor access to the sheet
-- Make sure `credentials.json` is in the right place
+- Make sure `credentials.json` is in the right place (or `GOOGLE_CREDENTIALS_JSON` is set)
 - Verify the Sheet ID is correct
 
 **Coordinator doesn't receive notifications:**
@@ -215,7 +220,7 @@ The Twilio Sandbox is great for testing but has limitations. For real use:
 1. Apply for WhatsApp Business API access through Twilio
 2. This requires Meta (Facebook) approval - takes 1-7 days
 3. You'll get a dedicated WhatsApp number
-4. Update `TWILIO_WHATSAPP_NUMBER` in your environment variables
+4. Update your Twilio credentials (or set up a `production` profile — see `.env.example` for details)
 5. All personnel just save the number and message it
 
 No app installation needed - it's just a WhatsApp contact.

@@ -8,15 +8,57 @@ const twilio = require("twilio");
 
 let client;
 let fromNumber;
+const isDemoMode = () => process.env.DEMO_MODE === "true";
+
+// --- Resolve Twilio credentials (supports named profiles) ---
+// Set TWILIO_PROFILE to switch accounts with one env var change.
+// Example profiles:
+//   TWILIO_PROFILE=sandbox  -> reads TWILIO_SANDBOX_ACCOUNT_SID, etc.
+//   TWILIO_PROFILE=production -> reads TWILIO_PRODUCTION_ACCOUNT_SID, etc.
+// If TWILIO_PROFILE is not set, falls back to TWILIO_ACCOUNT_SID (original behavior).
+function getTwilioCredentials() {
+  const profile = (process.env.TWILIO_PROFILE || "").toUpperCase();
+
+  if (profile) {
+    const sid = process.env[`TWILIO_${profile}_ACCOUNT_SID`];
+    const token = process.env[`TWILIO_${profile}_AUTH_TOKEN`];
+    const number = process.env[`TWILIO_${profile}_WHATSAPP_NUMBER`];
+
+    if (!sid || !token || !number) {
+      throw new Error(
+        `Twilio profile "${process.env.TWILIO_PROFILE}" is missing env vars. ` +
+        `Need: TWILIO_${profile}_ACCOUNT_SID, TWILIO_${profile}_AUTH_TOKEN, TWILIO_${profile}_WHATSAPP_NUMBER`
+      );
+    }
+    return { sid, token, number, profileName: process.env.TWILIO_PROFILE };
+  }
+
+  // No profile — use the default flat env vars
+  return {
+    sid: process.env.TWILIO_ACCOUNT_SID,
+    token: process.env.TWILIO_AUTH_TOKEN,
+    number: process.env.TWILIO_WHATSAPP_NUMBER,
+    profileName: "default",
+  };
+}
 
 function init() {
-  client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-  fromNumber = process.env.TWILIO_WHATSAPP_NUMBER;
-  console.log("✅ Twilio client initialized");
+  if (isDemoMode()) {
+    console.log("✅ DEMO MODE — Twilio disabled, messages will be logged to console");
+    return;
+  }
+  const creds = getTwilioCredentials();
+  client = twilio(creds.sid, creds.token);
+  fromNumber = creds.number;
+  console.log(`✅ Twilio client initialized [profile: ${creds.profileName}]`);
 }
 
 // --- Send a plain text message ---
 async function sendMessage(to, body) {
+  if (isDemoMode()) {
+    console.log(`📨 [DEMO] Would send to ${to}:\n${body}\n`);
+    return;
+  }
   try {
     await client.messages.create({
       from: fromNumber,
@@ -150,8 +192,9 @@ function validateTwilioSignature(req) {
   const url = (process.env.BASE_URL || "") + req.originalUrl;
   const params = req.body || {};
 
+  const creds = getTwilioCredentials();
   return twilio.validateRequest(
-    process.env.TWILIO_AUTH_TOKEN,
+    creds.token,
     signature,
     url,
     params

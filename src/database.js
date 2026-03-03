@@ -23,11 +23,23 @@ const TIMEZONE = process.env.TIMEZONE || "Asia/Jerusalem";
 async function init() {
   spreadsheetId = process.env.GOOGLE_SHEET_ID;
 
-  const credPath = process.env.GOOGLE_CREDENTIALS_PATH || "./credentials.json";
-  const auth = new google.auth.GoogleAuth({
-    keyFile: path.resolve(credPath),
-    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-  });
+  let auth;
+
+  if (process.env.GOOGLE_CREDENTIALS_JSON) {
+    // Cloud deploys: credentials provided as a JSON string in an env var
+    const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
+    auth = new google.auth.GoogleAuth({
+      credentials,
+      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+    });
+  } else {
+    // Local: credentials loaded from a file
+    const credPath = process.env.GOOGLE_CREDENTIALS_PATH || "./credentials.json";
+    auth = new google.auth.GoogleAuth({
+      keyFile: path.resolve(credPath),
+      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+    });
+  }
 
   const client = await auth.getClient();
   sheets = google.sheets({ version: "v4", auth: client });
