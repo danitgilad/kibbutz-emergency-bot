@@ -1,0 +1,26 @@
+{
+  "name": "kibbutz-emergency-bot",
+  "version": "1.0.0",
+  "description": "WhatsApp bot for managing kibbutz emergency personnel on-call roster",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "setup-sheets": "node src/setup-sheets.js",
+    "test": "jest --verbose"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.18.2",
+    "googleapis": "^131.0.0",
+    "twilio": "^5.0.0"
+  },
+  "devDependencies": {
+    "jest": "^30.2.0",
+    "nodemon": "^3.1.0",
+    "supertest": "^7.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
